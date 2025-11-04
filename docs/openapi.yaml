@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: OAuth2 Authentication API
+  description: |
+    This document specifies the REST API for an OAuth2 authentication service. The API provides endpoints for user registration, login (manual and via Google OAuth2), and profile management.
+
+    This API is implemented in multiple backend frameworks and languages, but the endpoints and data structures are consistent across all of them. The purpose is to demonstrate and compare different technology stacks for the same functionality.
+
+    **Core Features:**
+    - Manual user registration with email and password.
+    - Secure login and session management using JSON Web Tokens (JWT).
+    - Google OAuth2 integration for third-party authentication.
+    - A protected endpoint to retrieve user profiles.
+
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Express.js development server
+  - url: http://localhost:3000/api/v1
+    description: Bun/Hono development server
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user manually
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "strongpassword123"
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Email already registered or invalid input
+
+  /auth/login:
+    post:
+      summary: Log in a user manually
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "strongpassword123"
+      responses:
+        '200':
+          description: Login successful, returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid password
+        '404':
+          description: User not found
+
+  /auth/{provider}:
+    get:
+      summary: Redirect to OAuth provider for authentication
+      tags: [Authentication]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google]
+      responses:
+        '302':
+          description: Redirects to the Google OAuth2 consent screen.
+
+  /auth/{provider}/callback:
+    get:
+      summary: OAuth provider callback URL
+      tags: [Authentication]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google]
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+            description: The authorization code from the OAuth provider.
+      responses:
+        '200':
+          description: OAuth successful, returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Invalid code or provider
+
+  /users/profile:
+    get:
+      summary: Get the authenticated user's profile
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: John Doe
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: johndoe@example.com
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
