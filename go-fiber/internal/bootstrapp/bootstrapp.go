@@ -49,6 +49,7 @@ func Bootstrapp() {
 		cors.Config{
 			AllowOrigins: "*",
 			AllowHeaders: "*",
+			AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 		},
 	))
 	app.Use(logger.New())
@@ -61,7 +62,8 @@ func Bootstrapp() {
 
 	// ROUTING GROUPING
 	api := app.Group("/api/v1")
-	user.UserRoute(api.Group("/auth"), handler)
+	userRoute := api.Group("/")
+	user.UserRoute(userRoute, handler)
 
 	app.Listen(":" + os.Getenv("PORT_APP"))
 }

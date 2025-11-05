@@ -30,9 +30,9 @@ func (r *InMemoryUserRepository) FindByEmail(email string) (*user.User, error) {
 	return nil, nil
 }
 
-func (r *InMemoryUserRepository) FindByProvider(provider string, providerId string) (*user.User, error) {
+func (r *InMemoryUserRepository) FindByProvider(providerId string) (*user.User, error) {
 	for _, user := range r.users {
-		if user.Provider == provider && user.ProviderId == providerId {
+		if user.ProviderId == providerId {
 			return user, nil
 		}
 	}
