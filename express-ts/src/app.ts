@@ -37,7 +37,7 @@ function bootstrap(): void{
 
   // ROUTING GROUP
   router.use('/auth', authRoute.router);
-  router.use('/user', userRoute.router);
+  router.use('/users', userRoute.router);
 
   app.use("/api/v1", router)
 
